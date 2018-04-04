@@ -3,15 +3,15 @@ use failure::{Backtrace, Fail};
 use ::chunk_io::{ChunkSerializationError, ChunkDeserializationError};
 use ::messages::{MessageSerializationError, MessageDeserializationError};
 
-/// Error state when a server session encounters an error
+/// Error state when a client session encounters an error
 #[derive(Debug)]
-pub struct ServerSessionError {
-    pub kind: ServerSessionErrorKind,
+pub struct ClientSessionError {
+    pub kind: ClientSessionErrorKind,
 }
 
 /// Represents the type of error that occurred
 #[derive(Debug, Fail)]
-pub enum ServerSessionErrorKind {
+pub enum ClientSessionErrorKind {
     /// Encountered when an error occurs while deserializing the incoming byte data
     #[fail(display = "An error occurred deserializing incoming data: {}", _0)]
     ChunkDeserializationError(#[cause] ChunkDeserializationError),
@@ -27,35 +27,15 @@ pub enum ServerSessionErrorKind {
     /// Encountered when an error occurs while turning a message payload into an RTMP message
     #[fail(display = "An error occurred while attempting to turn a message payload into an RTMP message: {}", _0)]
     MessageDeserializationError(#[cause] MessageDeserializationError),
-
-    /// A request id that was attempting to be accepted or rejected was not a known
-    /// outstanding request.
-    #[fail(display = "Attempted to accept or reject request id {} but no outstanding requests have that id", _0)]
-    InvalidOutstandingRequest(u32),
-
-    /// A connection request was made without a valid RTMP app name
-    #[fail(display = "The connection request did not have a non-empty RTMP app name")]
-    NoAppNameForConnectionRequest,
-
-    /// The request id specified did not match an outstanding request
-    #[fail(display = "The request id specified could not be matched to an outstanding request")]
-    InvalidRequestId,
-
-    /// An action was attempted to be performed on a inactive stream
-    #[fail(display = "The '{}' action was attempted on non-existant stream id {}", action, stream_id)]
-    ActionAttemptedOnInactiveStream {
-        action: String,
-        stream_id: u32,
-    }
 }
 
-impl fmt::Display for ServerSessionError {
+impl fmt::Display for ClientSessionError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(&self.kind, f)
     }
 }
 
-impl Fail for ServerSessionError {
+impl Fail for ClientSessionError {
     fn cause(&self) -> Option<&Fail> {
         self.kind.cause()
     }
@@ -65,26 +45,26 @@ impl Fail for ServerSessionError {
     }
 }
 
-impl From<ChunkSerializationError> for ServerSessionError {
+impl From<ChunkSerializationError> for ClientSessionError {
     fn from(kind: ChunkSerializationError) -> Self {
-        ServerSessionError { kind: ServerSessionErrorKind::ChunkSerializationError(kind) }
+        ClientSessionError { kind: ClientSessionErrorKind::ChunkSerializationError(kind) }
     }
 }
 
-impl From<ChunkDeserializationError> for ServerSessionError {
+impl From<ChunkDeserializationError> for ClientSessionError {
     fn from(kind: ChunkDeserializationError) -> Self {
-        ServerSessionError { kind: ServerSessionErrorKind::ChunkDeserializationError(kind) }
+        ClientSessionError { kind: ClientSessionErrorKind::ChunkDeserializationError(kind) }
     }
 }
 
-impl From<MessageSerializationError> for ServerSessionError {
+impl From<MessageSerializationError> for ClientSessionError {
     fn from(kind: MessageSerializationError) -> Self {
-        ServerSessionError { kind: ServerSessionErrorKind::MessageSerializationError(kind) }
+        ClientSessionError { kind: ClientSessionErrorKind::MessageSerializationError(kind) }
     }
 }
 
-impl From<MessageDeserializationError> for ServerSessionError {
+impl From<MessageDeserializationError> for ClientSessionError {
     fn from(kind: MessageDeserializationError) -> Self {
-        ServerSessionError { kind: ServerSessionErrorKind::MessageDeserializationError(kind) }
+        ClientSessionError { kind: ClientSessionErrorKind::MessageDeserializationError(kind) }
     }
 }
